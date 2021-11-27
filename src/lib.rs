@@ -14,6 +14,7 @@ use std::error::Error;
 
 fn push_screen<T: cursive::View>(cursive: &mut Cursive, view: T) {
     cursive.add_layer(PaddedView::lrtb(1, 1, 1, 1, view).max_width(cursive.screen_size().x - 10));
+    cursive.refresh();
 }
 fn screen<T: cursive::View>(cursive: &mut Cursive, view: T) {
     cursive.pop_layer();

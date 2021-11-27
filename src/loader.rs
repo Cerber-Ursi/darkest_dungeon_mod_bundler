@@ -1,4 +1,4 @@
-use cursive::Cursive;
+use cursive::{Cursive, views::Dialog};
 use log::*;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
@@ -84,6 +84,10 @@ fn load_mods_dir(cursive: &mut Cursive, path: PathBuf, local: bool) -> Result<Ve
 pub fn load_path(cursive: &mut Cursive, base_path: &str) {
     info!("Loading Steam library from path: {}", base_path);
     let base_path = base_path.into();
+    crate::screen(
+        cursive,
+        Dialog::new().title("Loading mods list...")
+    );
 
     // First, the Workshop mods...
     let path = crate::paths::workshop(&base_path);

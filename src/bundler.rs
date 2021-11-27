@@ -254,24 +254,24 @@ fn load_mod(
         match orig {
             Some(old_entry) => match (old_entry, entry) {
                 (GameDataItem::Binary(_), GameDataItem::Binary(source)) => {
-                    let existing = binary.insert(path, source);
-                    debug_assert!(existing.is_none());
+                    let existing = binary.insert(path.clone(), source);
+                    debug_assert!(existing.is_none(), "Duplicated binary: {}", path.display());
                 }
                 (GameDataItem::Structured(orig), GameDataItem::Structured(ref modded)) => {
                     let existing =
-                        text_modified.insert(path, diff::diff(orig.to_map(), modded.to_map()));
-                    debug_assert!(existing.is_none());
+                        text_modified.insert(path.clone(), diff::diff(orig.to_map(), modded.to_map()));
+                    debug_assert!(existing.is_none(), "Duplicated structured data: {}", path.display());
                 }
                 _ => unreachable!(),
             },
             None => match entry {
                 GameDataItem::Binary(source) => {
-                    let existing = binary.insert(path, source);
-                    debug_assert!(existing.is_none());
+                    let existing = binary.insert(path.clone(), source);
+                    debug_assert!(existing.is_none(), "Duplicated binary: {}", path.display());
                 }
                 GameDataItem::Structured(item) => {
-                    let existing = text_added.insert(path, item);
-                    debug_assert!(existing.is_none());
+                    let existing = text_added.insert(path.clone(), item);
+                    debug_assert!(existing.is_none(), "Duplicated structured data: {}", path.display());
                 }
             },
         }

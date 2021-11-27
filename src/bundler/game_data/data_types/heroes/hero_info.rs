@@ -730,13 +730,13 @@ impl Loadable for HeroInfo {
         let mut modes = vec![];
         let mut incompatible_party_member = vec![];
         let mut unparsed = vec![];
-        let mut other = HashMap::new();
+        let mut other: HashMap<(String, String), Vec<String>> = HashMap::new();
 
         for (key, entry) in darkest_file {
             match key.as_str() {
                 "resistances" => {
                     let existing = resistances.replace(entry);
-                    debug_assert!(existing.is_none());
+                    debug_assert!(existing.is_none(), "Duplicated resistances");
                 }
                 "weapon" => weapons.push(entry),
                 "armour" => armours.push(entry),
@@ -747,18 +747,18 @@ impl Loadable for HeroInfo {
                 "extra_stack_limit" => extra_stack_limit.extend(entry.get("id").cloned().unwrap()),
                 "deaths_door" => {
                     let existing = deaths_door.replace(entry);
-                    debug_assert!(existing.is_none());
+                    debug_assert!(existing.is_none(), "Duplicated deaths_door");
                 }
                 "mode" => modes.push(entry),
                 "incompatible_party_member" => incompatible_party_member.push(entry),
                 "death_reaction"
                 | "hp_reaction"
                 | "overstressed_modifier"
-                | "extra_battle_loot" => unparsed.push((key, entry)),
+                | "extra_battle_loot"
+                | "extra_curio_loot" => unparsed.push((key, entry)),
                 _ => {
                     for (subkey, values) in entry {
-                        let existing = other.insert((key.clone(), subkey), values);
-                        debug_assert!(existing.is_none());
+                        other.entry((key.clone(), subkey)).or_default().extend(values);
                     }
                 }
             }
@@ -821,13 +821,13 @@ impl Loadable for HeroOverride {
         let mut modes = vec![];
         let mut incompatible_party_member = vec![];
         let mut unparsed = vec![];
-        let mut other = HashMap::new();
+        let mut other: HashMap<(String, String), Vec<String>> = HashMap::new();
 
         for (key, entry) in darkest_file {
             match key.as_str() {
                 "resistances" => {
                     let existing = resistances.replace(entry);
-                    debug_assert!(existing.is_none());
+                    debug_assert!(existing.is_none(), "Duplicated resistances");
                 }
                 "weapon" => weapons.push(entry),
                 "armour" => armours.push(entry),
@@ -838,18 +838,18 @@ impl Loadable for HeroOverride {
                 "extra_stack_limit" => extra_stack_limit.extend(entry.get("id").cloned().unwrap()),
                 "deaths_door" => {
                     let existing = deaths_door.replace(entry);
-                    debug_assert!(existing.is_none());
+                    debug_assert!(existing.is_none(), "Duplicated deaths_door");
                 }
                 "mode" => modes.push(entry),
                 "incompatible_party_member" => incompatible_party_member.push(entry),
                 "death_reaction"
                 | "hp_reaction"
                 | "overstressed_modifier"
-                | "extra_battle_loot" => unparsed.push((key, entry)),
+                | "extra_battle_loot"
+                | "extra_curio_loot" => unparsed.push((key, entry)),
                 _ => {
                     for (subkey, values) in entry {
-                        let existing = other.insert((key.clone(), subkey), values);
-                        debug_assert!(existing.is_none());
+                        other.entry((key.clone(), subkey)).or_default().extend(values);
                     }
                 }
             }
@@ -1470,7 +1470,7 @@ impl Armour {
         let spd = input.get("spd").expect("Armour SPD field not found")[0]
             .parse()
             .expect("Armour SPD field is not a number");
-        
+
         Self { def, prot, hp, spd }
     }
 }
