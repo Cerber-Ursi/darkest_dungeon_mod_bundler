@@ -19,7 +19,7 @@ impl DarkestEntry {
         String: Borrow<K>,
         K: Hash + Eq,
     {
-        self.0.remove(&key)
+        self.0.remove(key)
     }
 
     pub fn get<K: ?Sized>(&self, key: &K) -> Option<&Vec<String>>
@@ -27,7 +27,7 @@ impl DarkestEntry {
         String: Borrow<K>,
         K: Hash + Eq,
     {
-        self.0.get(&key)
+        self.0.get(key)
     }
 
     pub fn is_empty(&self) -> bool {

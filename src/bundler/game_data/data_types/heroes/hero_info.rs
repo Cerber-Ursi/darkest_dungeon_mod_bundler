@@ -303,7 +303,7 @@ impl BTreePatchable for HeroInfo {
                         .expect("The conflict value was used twice; this is a bug");
                     debug!("Got the change: path = {:?}, change = {:?}", path, change);
                     let level: i32 = path[2].parse().unwrap();
-                    assert!(level >= 0 && level < 5);
+                    assert!((0..5).contains(&level));
                     let path = path.iter().skip(3).cloned().collect::<Vec<_>>();
                     for (mod_name, change) in change {
                         skill_changes
@@ -1319,8 +1319,7 @@ impl Weapons {
 
 impl Weapon {
     fn from_entry(input: DarkestEntry) -> Self {
-        let mut out = Self::default();
-        out.atk = parse_percent(
+        let atk = parse_percent(
             input
                 .get("atk")
                 .expect("Weapon ATK not found")
@@ -1328,24 +1327,33 @@ impl Weapon {
                 .expect("Weapon ATK field is empty"),
         )
         .expect("Weapon ATK is not a number");
+
         let mut dmg = input
             .get("dmg")
             .expect("Weapon DMG field not found")
             .iter()
             .map(|s| s.parse().expect("Weapon DMG field is not a number"));
-        out.dmg = (
+        let dmg = (
             dmg.next().expect("Weapon DMG field is empty"),
             dmg.next().expect("Weapon DMG field has only one entry"),
         );
-        out.crit = parse_percent(&input.get("crit").expect("Weapon CRIT field not found")[0])
+
+        let crit = parse_percent(&input.get("crit").expect("Weapon CRIT field not found")[0])
             .expect("Weapon CRIT field is not a number");
+
         let spd = input
             .get("spd")
             .expect("Weapon SPD field not found")
             .get(0)
             .expect("Weapon SPD field is empty");
-        out.spd = spd.parse().expect("Weapon SPD field is not a number");
-        out
+        let spd = spd.parse().expect("Weapon SPD field is not a number");
+
+        Self {
+            atk,
+            dmg,
+            crit,
+            spd,
+        }
     }
 }
 impl Display for Weapon {
@@ -1452,18 +1460,18 @@ impl Armours {
 }
 impl Armour {
     fn from_entry(input: DarkestEntry) -> Self {
-        let mut out = Self::default();
-        out.def = parse_percent(&input.get("def").expect("Armour DEF field not found")[0])
+        let def = parse_percent(&input.get("def").expect("Armour DEF field not found")[0])
             .expect("Armour DEF field is not a number");
-        out.prot = parse_percent(&input.get("prot").expect("Armour PROT field not found")[0])
+        let prot = parse_percent(&input.get("prot").expect("Armour PROT field not found")[0])
             .expect("Armour PROT field is not a number");
-        out.hp = input.get("hp").expect("Armour HP field not found")[0]
+        let hp = input.get("hp").expect("Armour HP field not found")[0]
             .parse()
             .expect("Armour HP field is not a number");
-        out.spd = input.get("spd").expect("Armour SPD field not found")[0]
+        let spd = input.get("spd").expect("Armour SPD field not found")[0]
             .parse()
             .expect("Armour SPD field is not a number");
-        out
+        
+        Self { def, prot, hp, spd }
     }
 }
 impl Display for Armour {
@@ -1540,7 +1548,7 @@ impl Skills {
                 path
             )
         });
-        assert!(level >= 0 && level < 5);
+        assert!((0..5).contains(&level));
         self.0
             .get_mut(name)
             .unwrap_or_else(|| panic!("Unexpected path in hero data: {:?}, skill not found", path))
@@ -1569,7 +1577,7 @@ impl BTreeMappable for Skills {
                 let map = skill.to_map();
                 skill_map.extend_prefixed(&level.to_string(), map);
             }
-            out.extend_prefixed(&name, skill_map);
+            out.extend_prefixed(name, skill_map);
         }
         out
     }
@@ -1903,7 +1911,7 @@ impl BTreeMappable for Unparsed {
     fn to_map(&self) -> DataMap {
         let mut out = DataMap::new();
         for (key, value) in &self.0 {
-            out.extend_prefixed(&key, value.to_set());
+            out.extend_prefixed(key, value.to_set());
         }
         out
     }

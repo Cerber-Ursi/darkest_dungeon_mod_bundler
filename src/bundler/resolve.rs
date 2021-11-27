@@ -35,10 +35,10 @@ pub fn resolve_binaries(
                 let collected = files
                     .iter_mut()
                     .map(|(path, file)| {
-                        Ok(file
+                        file
                             .next()
                             .transpose()
-                            .map_err(ResolveError::from_io(*path))?)
+                            .map_err(ResolveError::from_io(*path))
                     })
                     .collect::<Result<Vec<_>, _>>()?;
                 if !collected.iter().all(|byte| byte == &collected[0]) {

@@ -40,7 +40,7 @@ enum LoadModsError {
     #[error("Failed to load mods data due to IO error")]
     Io(#[from] std::io::Error),
     #[error("Broken XML in mod directory {1}")]
-    XML(#[source] serde_xml_rs::Error, PathBuf),
+    Xml(#[source] serde_xml_rs::Error, PathBuf),
 }
 
 fn load_mods_dir(cursive: &mut Cursive, path: PathBuf, local: bool) -> Result<Vec<Mod>, LoadModsError> {
@@ -73,7 +73,7 @@ fn load_mods_dir(cursive: &mut Cursive, path: PathBuf, local: bool) -> Result<Ve
                             project,
                         }))
                     }
-                    Err(error) => Err(LoadModsError::XML(error, path)),
+                    Err(error) => Err(LoadModsError::Xml(error, path)),
                 }
             })
         })

@@ -382,7 +382,7 @@ impl Loadable for StringsTable {
     fn load_raw(path: &std::path::Path) -> std::io::Result<Self> {
         let mut collected = Self::default();
         let files = collect_paths(
-            &path.parent().expect("Broken path to localization files"),
+            path.parent().expect("Broken path to localization files"),
             |path| Ok(has_ext(path, "xml")),
         )?;
         for file in files {

@@ -3,13 +3,10 @@ use simplelog::{ConfigBuilder, WriteLogger};
 use std::fs::File;
 
 fn main() {
-    match std::env::args().nth(1).as_deref() {
-        Some("--help") => {
-            println!("Use --debug to log everything to ./log");
-            return;
-        },
-        _ => {}
-    };
+    if let Some("--help") = std::env::args().nth(1).as_deref() {
+        println!("Use --debug to log everything to ./log");
+        return;
+    }
 
     let log_level = match std::env::args().nth(1).as_deref() {
         Some("--debug") => LevelFilter::Debug,
