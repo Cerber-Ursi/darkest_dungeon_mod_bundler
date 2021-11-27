@@ -758,7 +758,10 @@ impl Loadable for HeroInfo {
                 | "extra_curio_loot" => unparsed.push((key, entry)),
                 _ => {
                     for (subkey, values) in entry {
-                        other.entry((key.clone(), subkey)).or_default().extend(values);
+                        other
+                            .entry((key.clone(), subkey))
+                            .or_default()
+                            .extend(values);
                     }
                 }
             }
@@ -769,8 +772,8 @@ impl Loadable for HeroInfo {
             weapons: Weapons::from_entries(weapons),
             armours: Armours::from_entries(armours),
             skills: Skills::from_entries(skills),
-            riposte_skill: Skill::try_from_entries(riposte_skill),
-            move_skill: Skill::from_entries(move_skill),
+            riposte_skill: Skill::try_from_entries("riposte_skill", riposte_skill),
+            move_skill: Skill::from_entries("combat_move_skill", move_skill),
             tags,
             extra_stack_limit,
             deaths_door: DeathsDoor::from_entry(deaths_door.unwrap()),
@@ -849,7 +852,10 @@ impl Loadable for HeroOverride {
                 | "extra_curio_loot" => unparsed.push((key, entry)),
                 _ => {
                     for (subkey, values) in entry {
-                        other.entry((key.clone(), subkey)).or_default().extend(values);
+                        other
+                            .entry((key.clone(), subkey))
+                            .or_default()
+                            .extend(values);
                     }
                 }
             }
@@ -862,8 +868,10 @@ impl Loadable for HeroOverride {
             weapons: opt_vec(weapons).map(Weapons::from_entries),
             armours: opt_vec(armours).map(Armours::from_entries),
             skills: opt_vec(skills).map(Skills::from_entries),
-            riposte_skill: opt_vec(riposte_skill).map(Skill::from_entries),
-            move_skill: opt_vec(move_skill).map(Skill::from_entries),
+            riposte_skill: opt_vec(riposte_skill)
+                .map(|skill| Skill::from_entries("riposte_skill", skill)),
+            move_skill: opt_vec(move_skill)
+                .map(|skill| Skill::from_entries("combat_move_skill", skill)),
             tags,
             extra_stack_limit,
             deaths_door: deaths_door.map(DeathsDoor::from_entry),
@@ -1532,7 +1540,7 @@ impl Skills {
                         key,
                         value
                             .into_iter()
-                            .map(|(key, value)| (key, Skill::from_entries(value)))
+                            .map(|(key, value)| (key, Skill::from_entries("combat_skill", value)))
                             .collect(),
                     )
                 })
@@ -1560,7 +1568,7 @@ impl Skills {
         for (id, skill) in &self.0 {
             writeln!(target, "// Skill: {}", id)?;
             for skill in skill.values() {
-                writeln!(target, "combat_skill: {}", skill.to_string())?;
+                writeln!(target, "{}", skill.to_string())?;
             }
             writeln!(target)?;
         }
@@ -1585,6 +1593,7 @@ impl BTreeMappable for Skills {
 
 #[derive(Clone, Debug, Default)]
 struct Skill {
+    label: String,
     id: String,
     level: i32,
     effects: Vec<String>,
@@ -1592,14 +1601,15 @@ struct Skill {
 }
 
 impl Skill {
-    fn try_from_entries(input: Vec<DarkestEntry>) -> Option<Self> {
+    fn try_from_entries(label: impl Into<String>, input: Vec<DarkestEntry>) -> Option<Self> {
         if input.is_empty() {
             None
         } else {
-            Some(Self::from_entries(input))
+            Some(Self::from_entries(label, input))
         }
     }
-    fn from_entries(mut input: Vec<DarkestEntry>) -> Self {
+    fn from_entries(label: impl Into<String>, mut input: Vec<DarkestEntry>) -> Self {
+        let label = label.into();
         let effects = input
             .iter_mut()
             .flat_map(|entry| entry.remove("effect").unwrap_or_default())
@@ -1616,6 +1626,7 @@ impl Skill {
             .parse()
             .expect("Malformed hero info file - wrong skill level format");
         Self {
+            label,
             id,
             level,
             effects,
@@ -1637,6 +1648,7 @@ impl Skill {
                 let _ = path.drain(1..=2);
             }
             "riposte_skill" => (),
+            "move_skill" => (),
             _ => panic!("Unexpected path in hero info: {:?}", path),
         };
         match path[1].as_str() {
@@ -1662,8 +1674,8 @@ impl Skill {
     }
     // TODO - this can be misused
     fn deploy(&self, target: &mut File) -> io::Result<()> {
-        writeln!(target, "// Riposte Skill")?;
-        writeln!(target, "riposte_skill: {}", self)?;
+        writeln!(target, "// Special skill")?;
+        writeln!(target, "{}", self)?;
         writeln!(target)?;
         Ok(())
     }
@@ -1683,8 +1695,8 @@ impl Display for Skill {
             .join(" ");
         write!(
             f,
-            " .id {} .level {} {} {}",
-            self.id, self.level, other, effects
+            "{}: .id {} .level {} {} {}",
+            self.label, self.id, self.level, other, effects
         )
     }
 }
