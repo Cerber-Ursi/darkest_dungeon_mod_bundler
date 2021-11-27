@@ -51,7 +51,8 @@ pub fn deploy(
 <project>
     <Title>{}</Title>
     <ModDataPath>{}</ModDataPath>
-	<UploadMode>dont_submit</UploadMode>
+    <Visibility>private</Visibility>
+	<UploadMode>direct_upload</UploadMode>
 </project>"#,
         name,
         mod_path

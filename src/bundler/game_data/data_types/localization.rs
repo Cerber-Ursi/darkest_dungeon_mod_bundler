@@ -374,7 +374,7 @@ impl Loadable for StringsTable {
     fn prepare_list(root_path: &std::path::Path) -> std::io::Result<Vec<std::path::PathBuf>> {
         let path = root_path.join("localization");
         if path.exists() {
-            Ok(vec![path.join("bundled.xml")])
+            Ok(vec![path.join("bundled.string_table.xml")])
         } else {
             Ok(vec![])
         }
